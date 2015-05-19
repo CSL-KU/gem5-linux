@@ -89,6 +89,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
 
+#include "m5op.h"
+
 void start_bandwidth_timer(struct hrtimer *period_timer, ktime_t period)
 {
 	unsigned long delta;
@@ -1944,10 +1946,34 @@ fire_sched_out_preempt_notifiers(struct task_struct *curr,
  * prepare_task_switch sets up locking and calls architecture specific
  * hooks.
  */
+#define USE_MSHR_PART 0
+#if USE_MSHR_PART
+int mshr_part[4] = {2,2,2,2};
+#endif
 static inline void
 prepare_task_switch(struct rq *rq, struct task_struct *prev,
 		    struct task_struct *next)
 {
+#if USE_MSHR_PART
+    int i;
+    if (rt_task(next)) {
+	    for_each_online_cpu(i) {
+            m5_setmshr(i, mshr_part[i]);
+        }
+    } else if (rt_task(prev)) {
+        int myid = smp_processor_id();
+        for_each_online_cpu(i) {
+            if (i == myid)
+                continue;
+            if (rt_task(cpu_rq(i)->curr))
+                goto out;
+        }
+        for_each_online_cpu(i) {
+            m5_setmshr(i, -1);
+        }
+    }
+out:
+#endif
 	trace_sched_switch(prev, next);
 	sched_info_switch(rq, prev, next);
 	perf_event_task_sched_out(prev, next);
