@@ -1946,15 +1946,60 @@ fire_sched_out_preempt_notifiers(struct task_struct *curr,
  * prepare_task_switch sets up locking and calls architecture specific
  * hooks.
  */
-#define USE_MSHR_PART 0
+#define USE_MSHR_PART 1
 #if USE_MSHR_PART
 int mshr_part[4] = {2,2,2,2};
+int llc_mshr_tot = 12;
+int number_of_cores = 4;
 #endif
 static inline void
 prepare_task_switch(struct rq *rq, struct task_struct *prev,
 		    struct task_struct *next)
 {
 #if USE_MSHR_PART
+    int myid = smp_processor_id();
+    int i, mshr_nrt, n_rt=0;
+    int mshr_remain = llc_mshr_tot;
+    if (rt_task(next)) {
+        m5_setmshr(myid, mshr_part[myid]);
+        for_each_online_cpu(i) {
+            if (rt_task(cpu_rq(i)->curr)) {
+                n_rt++;
+                mshr_remain -= mshr_part[i];
+            }
+        }
+        if(n_rt < number_of_cores) { 
+            mshr_nrt = mshr_remain/(number_of_cores - n_rt);
+            for_each_online_cpu(i) {
+                if (!rt_task(cpu_rq(i)->curr)) {
+                    m5_setmshr(i, mshr_nrt);
+                }
+            }
+        }
+    } else if (rt_task(prev)) {
+        for_each_online_cpu(i) {
+            if (rt_task(cpu_rq(i)->curr)) {
+                n_rt++;
+                mshr_remain -= mshr_part[i];
+            }
+        }
+        if(n_rt == 0) { 
+            for_each_online_cpu(i) {
+                m5_setmshr(i, -1);
+            }
+        } else {
+            mshr_nrt = mshr_remain/(number_of_cores - n_rt);
+            for_each_online_cpu(i) {
+                if (!rt_task(cpu_rq(i)->curr)) {
+                    m5_setmshr(i, mshr_nrt);
+                }
+            }
+        }
+    }
+
+#endif
+
+#if 0
     int i;
     if (rt_task(next)) {
 	    for_each_online_cpu(i) {
