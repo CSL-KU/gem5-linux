@@ -1946,7 +1946,7 @@ fire_sched_out_preempt_notifiers(struct task_struct *curr,
  * prepare_task_switch sets up locking and calls architecture specific
  * hooks.
  */
-#define USE_MSHR_PART 1
+#define USE_MSHR_PART 0
 #if USE_MSHR_PART
 int mshr_part[4] = {2,2,2,2};
 int llc_mshr_tot = 12;
