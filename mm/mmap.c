@@ -1348,6 +1348,22 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 			vm_flags |= VM_NORESERVE;
 	}
 
+#ifdef CONFIG_MMAP_OUTER_CACHE
+
+	/* If needed, mark the VM for outer caching policy */
+	if (flags & MAP_OUTER_CACHE) {
+		if (!(flags & MAP_SHARED))
+			return -EINVAL;
+	
+		vm_flags |= VM_OUTERCACHE;
+
+		/* printk("== (%s %d) OUTER CACHE mmap for %s - vm_flags = 0x%08lx;\n", */
+		/*        __FILE__, __LINE__, */
+		/*        current->comm, vm_flags); */
+	}
+	
+#endif
+
 	addr = mmap_region(file, addr, len, vm_flags, pgoff);
 	if (!IS_ERR_VALUE(addr) &&
 	    ((vm_flags & VM_LOCKED) ||

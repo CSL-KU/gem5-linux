@@ -147,6 +147,14 @@ ENDPROC(cpu_v7_set_pte_ext)
 .equ	PRRR,	0xff0a81a8
 .equ	NMRR,	0x40e040e0
 
+/* NMRR is modified such that it allocated Normal memory for
+ * determinsitic type. The below config name is confusing, beacause
+ * the config name is used as it is from Renato's code.
+ */
+#ifdef CONFIG_MMAP_OUTER_CACHE
+.equ	PRRR,	0xff0a8da8
+.equ	NMRR,	0x44e044e0
+#endif
 	/*
 	 * Macro for setting up the TTBRx and TTBCR registers.
 	 * - \ttb0 and \ttb1 updated with the corresponding flags.

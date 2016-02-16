@@ -3259,6 +3259,17 @@ static int do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (vma->vm_flags & VM_WRITE)
 		entry = pte_mkwrite(pte_mkdirty(entry));
 
+#ifdef CONFIG_MMAP_OUTER_CACHE
+	/* If this VM was allocated as an outer cacheable page, modify
+	 * the PTE entry to reflect this setting */
+	/* printk("== ANON for vma_start = 0x%08lx; pte_val = 0x%08lx; vm_flags = 0x%08lx\n", */
+	/*        vma->vm_start, (u32)pte_val(entry), vma->vm_flags); */
+
+	if (vma->vm_flags & VM_OUTERCACHE) {
+		entry = pte_mkoutercache(entry);
+	}
+#endif
+
 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
 	if (!pte_none(*page_table))
 		goto release;
@@ -3430,6 +3441,17 @@ static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 				get_page(dirty_page);
 			}
 		}
+
+#ifdef CONFIG_MMAP_OUTER_CACHE
+		/* If this VM was allocated as an outer cacheable page, modify
+		 * the PTE entry to reflect this setting */
+		
+		if (vma->vm_flags & VM_OUTERCACHE) {
+			entry = pte_mkoutercache(entry);
+			/* printk("== OUTER (linear) for vma_start = 0x%08lx; pte_val = 0x%08lx\n", */
+			/*        vma->vm_start, (u32)pte_val(entry)); */
+		}
+#endif
 		set_pte_at(mm, address, page_table, entry);
 
 		/* no need to invalidate: a not-present page won't be cached */

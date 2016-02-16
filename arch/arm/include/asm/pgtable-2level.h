@@ -142,6 +142,16 @@
 #define L_PTE_MT_DEV_CACHED	(_AT(pteval_t, 0x0b) << 2)	/* 1011 */
 #define L_PTE_MT_MASK		(_AT(pteval_t, 0x0f) << 2)
 
+#ifdef CONFIG_MMAP_OUTER_CACHE
+/* 
+ *  Seems like the tegra k1 chip does not implement the memory policy
+ *  that corresponds to the TEX remapping = 0101 (5). So use the
+ *  policy that is normally asigned to write-through instead.
+ */
+#define L_PTE_MT_OUTERWRITEALLOC	(_AT(pteval_t, 0x05) << 2)	/* 0101 */
+//#define L_PTE_MT_OUTERWRITEALLOC	(_AT(pteval_t, 0x02) << 2)	/* 0010 */
+#endif
+
 #ifndef __ASSEMBLY__
 
 /*

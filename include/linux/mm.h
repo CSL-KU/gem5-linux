@@ -119,6 +119,10 @@ extern unsigned int kobjsize(const void *objp);
 #define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
 #define VM_DONTDUMP	0x04000000	/* Do not include in the core dump */
 
+#ifdef CONFIG_MMAP_OUTER_CACHE
+#define VM_OUTERCACHE   0x08000000     /* Do not cache this VM in private cache levels  */
+#endif
+
 #ifdef CONFIG_MEM_SOFT_DIRTY
 # define VM_SOFTDIRTY	0x08000000	/* Not soft dirty clean area */
 #else

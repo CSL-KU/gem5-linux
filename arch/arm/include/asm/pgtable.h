@@ -255,6 +255,21 @@ PTE_BIT_FUNC(mkdirty,   |= L_PTE_DIRTY);
 PTE_BIT_FUNC(mkold,     &= ~L_PTE_YOUNG);
 PTE_BIT_FUNC(mkyoung,   |= L_PTE_YOUNG);
 
+#ifdef CONFIG_MMAP_OUTER_CACHE
+
+static inline pte_t pte_mkoutercache(pte_t pte)
+{ 
+	/* Basically reset linux-owned XCB bits. PRRR/NMRR are
+	 * modified accordingly to map policy 000 to MT = 10 (normal),
+	 * INNER = 00 (non-cacheable), OUTER = 01 (write-back,
+	 * write-allocate) */
+	pte_val(pte) &= ~(L_PTE_MT_WRITEALLOC);
+	pte_val(pte) |= (L_PTE_MT_OUTERWRITEALLOC);
+	return pte;
+}
+
+#endif
+
 static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)

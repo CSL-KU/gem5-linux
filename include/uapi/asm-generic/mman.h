@@ -13,6 +13,13 @@
 #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
 #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
 
+/* 
+ * MAP_HUGETLB and MAP_OUTER_CACHE cannot be defined at the same time
+ */
+#ifdef CONFIG_MMAP_OUTER_CACHE
+#define MAP_OUTER_CACHE 0x80000
+#endif
+
 /* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
 
 #define MCL_CURRENT	1		/* lock all current mappings */
