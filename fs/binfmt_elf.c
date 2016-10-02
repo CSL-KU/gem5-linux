@@ -583,6 +583,8 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	unsigned long reloc_func_desc __maybe_unused = 0;
 	int executable_stack = EXSTACK_DEFAULT;
 	unsigned long def_flags = 0;
+	const char *filename;
+	bool deterministic = false;
 	struct pt_regs *regs = current_pt_regs();
 	struct {
 		struct elfhdr elf_ex;
@@ -746,6 +748,9 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	}
 	
 	current->mm->start_stack = bprm->p;
+	filename = bprm->filename;
+	if (strstr(filename, "deterministic") != NULL)
+	   deterministic = true;
 
 	/* Now we do a little grungy work by mmapping the ELF image into
 	   the correct location in memory. */
@@ -793,6 +798,8 @@ static int load_elf_binary(struct linux_binprm *bprm)
 			elf_prot |= PROT_EXEC;
 
 		elf_flags = MAP_PRIVATE | MAP_DENYWRITE | MAP_EXECUTABLE;
+		if(deterministic)
+		   elf_flags |= MAP_OUTER_CACHE;
 
 		vaddr = elf_ppnt->p_vaddr;
 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
