@@ -1352,8 +1352,10 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
 
 	/* If needed, mark the VM for outer caching policy */
 	if (flags & MAP_OUTER_CACHE) {
-		/* if (!(flags & MAP_SHARED)) */
-		/*	return -EINVAL; */
+#if 0
+		if (!(flags & MAP_SHARED))
+			return -EINVAL;
+#endif
 
 		vm_flags |= VM_OUTERCACHE;
 
