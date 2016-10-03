@@ -737,20 +737,22 @@ static int load_elf_binary(struct linux_binprm *bprm)
 		current->flags |= PF_RANDOMIZE;
 
 	setup_new_exec(bprm);
-
+	/* if the filename has deterministic string, then set the
+	 * deterministic flag to true
+	 */
+	filename = bprm->filename;
+	if (strstr(filename, "deterministic") != NULL)
+	   deterministic = true;
 	/* Do this so that we can load the interpreter, if need be.  We will
 	   change some of these later */
 	retval = setup_arg_pages(bprm, randomize_stack_top(STACK_TOP),
-				 executable_stack);
+				 executable_stack, deterministic);
 	if (retval < 0) {
 		send_sig(SIGKILL, current, 0);
 		goto out_free_dentry;
 	}
-	
+
 	current->mm->start_stack = bprm->p;
-	filename = bprm->filename;
-	if (strstr(filename, "deterministic") != NULL)
-	   deterministic = true;
 
 	/* Now we do a little grungy work by mmapping the ELF image into
 	   the correct location in memory. */
@@ -764,7 +766,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 
 		if (unlikely (elf_brk > elf_bss)) {
 			unsigned long nbyte;
-	            
+
 			/* There was a PT_LOAD segment with p_memsz > p_filesz
 			   before this one. Map anonymous pages, if needed,
 			   and clear the area.  */

@@ -641,7 +641,8 @@ static int shift_arg_pages(struct vm_area_struct *vma, unsigned long shift)
  */
 int setup_arg_pages(struct linux_binprm *bprm,
 		    unsigned long stack_top,
-		    int executable_stack)
+		    int executable_stack,
+		    bool deterministic)
 {
 	unsigned long ret;
 	unsigned long stack_shift;
@@ -700,6 +701,8 @@ int setup_arg_pages(struct linux_binprm *bprm,
 	else if (executable_stack == EXSTACK_DISABLE_X)
 		vm_flags &= ~VM_EXEC;
 	vm_flags |= mm->def_flags;
+	if (deterministic)
+		vm_flags |= VM_OUTERCACHE;
 	vm_flags |= VM_STACK_INCOMPLETE_SETUP;
 
 	ret = mprotect_fixup(vma, &prev, vma->vm_start, vma->vm_end,
