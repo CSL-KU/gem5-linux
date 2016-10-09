@@ -336,6 +336,9 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 			flags & VM_WRITE ? 'w' : '-',
 			flags & VM_EXEC ? 'x' : '-',
 			flags & VM_MAYSHARE ? 's' : 'p',
+#if CONFIG_MMAP_OUTER_CACHE
+			flags & VM_OUTERCACHE ? 'd' : '-',
+#endif
 			pgoff,
 			MAJOR(dev), MINOR(dev), ino);
 
