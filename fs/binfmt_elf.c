@@ -84,13 +84,13 @@ static struct linux_binfmt elf_format = {
 
 #define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
 
-static int set_brk(unsigned long start, unsigned long end)
+static int set_brk(unsigned long start, unsigned long end,  bool deterministic)
 {
 	start = ELF_PAGEALIGN(start);
 	end = ELF_PAGEALIGN(end);
 	if (end > start) {
 		unsigned long addr;
-		addr = vm_brk(start, end - start);
+		addr = vm_brk(start, end - start,  deterministic);
 		if (BAD_ADDR(addr))
 			return addr;
 	}
@@ -525,7 +525,7 @@ static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
 		elf_bss = ELF_PAGESTART(elf_bss + ELF_MIN_ALIGN - 1);
 
 		/* Map the last of the bss segment */
-		error = vm_brk(elf_bss, last_bss - elf_bss);
+		error = vm_brk(elf_bss, last_bss - elf_bss, false);
 		if (BAD_ADDR(error))
 			goto out_close;
 	}
@@ -771,7 +771,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 			   before this one. Map anonymous pages, if needed,
 			   and clear the area.  */
 			retval = set_brk(elf_bss + load_bias,
-					 elf_brk + load_bias);
+					 elf_brk + load_bias, deterministic);
 			if (retval) {
 				send_sig(SIGKILL, current, 0);
 				goto out_free_dentry;
@@ -893,7 +893,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	 * mapping in the interpreter, to make sure it doesn't wind
 	 * up getting placed where the bss needs to go.
 	 */
-	retval = set_brk(elf_bss, elf_brk);
+	retval = set_brk(elf_bss, elf_brk, deterministic);
 	if (retval) {
 		send_sig(SIGKILL, current, 0);
 		goto out_free_dentry;
@@ -1087,7 +1087,7 @@ static int load_elf_library(struct file *file)
 			    ELF_MIN_ALIGN - 1);
 	bss = eppnt->p_memsz + eppnt->p_vaddr;
 	if (bss > len)
-		vm_brk(len, bss - len);
+		vm_brk(len, bss - len, false);
 	error = 0;
 
 out_free_ph:
