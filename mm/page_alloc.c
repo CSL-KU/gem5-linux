@@ -75,7 +75,7 @@ static DEFINE_MUTEX(pcp_batch_high_lock);
 #ifdef CONFIG_CGROUP_PALLOC
 #include <linux/palloc.h>
 
-int memdbg_enable = 1;
+int memdbg_enable = 0;
 EXPORT_SYMBOL(memdbg_enable);
 
 static int sysctl_alloc_balance = 0;
