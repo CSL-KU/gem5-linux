@@ -742,7 +742,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	 */
 	filename = bprm->filename;
 	if (strstr(filename, "deterministic") != NULL)
-	   deterministic = true;
+		deterministic = true;
 	/* Do this so that we can load the interpreter, if need be.  We will
 	   change some of these later */
 	retval = setup_arg_pages(bprm, randomize_stack_top(STACK_TOP),
@@ -801,7 +801,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 
 		elf_flags = MAP_PRIVATE | MAP_DENYWRITE | MAP_EXECUTABLE;
 		if(deterministic)
-		   elf_flags |= MAP_OUTER_CACHE;
+			elf_flags |= MAP_OUTER_CACHE;
 
 		vaddr = elf_ppnt->p_vaddr;
 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {

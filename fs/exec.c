@@ -250,6 +250,11 @@ static int __bprm_mm_init(struct linux_binprm *bprm)
 	struct vm_area_struct *vma = NULL;
 	struct mm_struct *mm = bprm->mm;
 
+#ifdef CONFIG_MMAP_OUTER_CACHE
+	bool deterministic = false;
+	if (bprm->filename && strstr(bprm->filename, "deterministic") != NULL)
+		deterministic = true;
+#endif
 	bprm->vma = vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
 	if (!vma)
 		return -ENOMEM;
@@ -267,6 +272,10 @@ static int __bprm_mm_init(struct linux_binprm *bprm)
 	vma->vm_end = STACK_TOP_MAX;
 	vma->vm_start = vma->vm_end - PAGE_SIZE;
 	vma->vm_flags = VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
+#ifdef CONFIG_MMAP_OUTER_CACHE
+	if (deterministic)
+		vma->vm_flags |= VM_OUTERCACHE;
+#endif
 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
 	INIT_LIST_HEAD(&vma->anon_vma_chain);
 
@@ -701,8 +710,10 @@ int setup_arg_pages(struct linux_binprm *bprm,
 	else if (executable_stack == EXSTACK_DISABLE_X)
 		vm_flags &= ~VM_EXEC;
 	vm_flags |= mm->def_flags;
+#ifdef CONFIG_MMAP_OUTER_CACHE
 	if (deterministic)
 		vm_flags |= VM_OUTERCACHE;
+#endif
 	vm_flags |= VM_STACK_INCOMPLETE_SETUP;
 
 	ret = mprotect_fixup(vma, &prev, vma->vm_start, vma->vm_end,
