@@ -2694,6 +2694,9 @@ unsigned long vm_brk(unsigned long addr, unsigned long len, bool deterministic)
 	bool populate;
 
 	down_write(&mm->mmap_sem);
+#if 0
+    printk("vm_brk pid:%d dm:%d\n", current->pid, deterministic);
+#endif
 	if (deterministic)
 		mm->def_flags |= VM_OUTERCACHE;
 	ret = do_brk(addr, len);
