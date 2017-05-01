@@ -585,6 +585,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	unsigned long def_flags = 0;
 	const char *filename;
 	bool deterministic = false;
+	bool determ_heap = false;
 	struct pt_regs *regs = current_pt_regs();
 	struct {
 		struct elfhdr elf_ex;
@@ -743,6 +744,8 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	filename = bprm->filename;
 	if (strstr(filename, "deterministic") != NULL)
 		deterministic = true;
+	else if (strstr(filename, "determ_heap") != NULL)
+		determ_heap = true;
 	/* Do this so that we can load the interpreter, if need be.  We will
 	   change some of these later */
 	retval = setup_arg_pages(bprm, randomize_stack_top(STACK_TOP),
@@ -771,7 +774,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 			   before this one. Map anonymous pages, if needed,
 			   and clear the area.  */
 			retval = set_brk(elf_bss + load_bias,
-					 elf_brk + load_bias, deterministic);
+					 elf_brk + load_bias, deterministic || determ_heap);
 			if (retval) {
 				send_sig(SIGKILL, current, 0);
 				goto out_free_dentry;
@@ -893,7 +896,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	 * mapping in the interpreter, to make sure it doesn't wind
 	 * up getting placed where the bss needs to go.
 	 */
-	retval = set_brk(elf_bss, elf_brk, deterministic);
+	retval = set_brk(elf_bss, elf_brk, deterministic || determ_heap);
 	if (retval) {
 		send_sig(SIGKILL, current, 0);
 		goto out_free_dentry;
