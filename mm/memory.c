@@ -1820,8 +1820,8 @@ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 			unsigned int foll_flags = gup_flags;
 			unsigned int page_increm;
 #ifdef CONFIG_MMAP_OUTER_CACHE
-            pte_t *page_table;
-            pte_t entry;
+			pte_t *page_table;
+			pte_t entry;
 #endif
 
 			/*
@@ -1915,15 +1915,15 @@ next_page:
 				page_mask = 0;
 			}
 #ifdef CONFIG_MMAP_OUTER_CACHE
-            if (vma->vm_flags & VM_OUTERCACHE) {
-                page_table = get_pte(start, mm, gup_flags);
-                entry = pte_mkoutercache(*page_table);
-                set_pte_at(mm, start, page_table, entry);
+			if (vma->vm_flags & VM_OUTERCACHE) {
+				page_table = get_pte(start, mm, gup_flags);
+				entry = pte_mkoutercache(*page_table);
+				set_pte_at(mm, start, page_table, entry);
 #if 0
-                printk("start = 0x%08lx; pte_val = 0x%08lx; vm_flags = 0x%08lx\n",
-                    start, (u32)pte_val(*page_table), vma->vm_flags);
+				printk("start = 0x%08lx; pte_val = 0x%08lx; vm_flags = 0x%08lx\n",
+					start, (u32)pte_val(*page_table), vma->vm_flags);
 #endif
-            }
+			}
 #endif
 			page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
 			if (page_increm > nr_pages)
@@ -3370,7 +3370,6 @@ static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 
 		if (unlikely(anon_vma_prepare(vma)))
 			return VM_FAULT_OOM;
-
 		cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
 		if (!cow_page)
 			return VM_FAULT_OOM;
@@ -3700,6 +3699,14 @@ static int handle_pte_fault(struct mm_struct *mm,
 	spinlock_t *ptl;
 
 	entry = *pte;
+
+#ifdef CONFIG_DETMEM_PALLOC
+	mm->dm_page_fault = vma->vm_flags & VM_OUTERCACHE ? true : false;
+	/* if (current->is_dm_task)
+		printk("*dm pte * dm_page_fault:%d va:0x%08lx\n",
+		       mm->dm_page_fault,
+		       address); */
+#endif
 	if (!pte_present(entry)) {
 		if (pte_none(entry)) {
 			if (vma->vm_ops) {
@@ -3730,6 +3737,9 @@ static int handle_pte_fault(struct mm_struct *mm,
 					pte, pmd, ptl, entry);
 		entry = pte_mkdirty(entry);
 	}
+#ifdef CONFIG_DETMEM_PALLOC
+	mm->dm_page_fault = false;
+#endif
 	entry = pte_mkyoung(entry);
 	if (ptep_set_access_flags(vma, address, pte, entry, flags & FAULT_FLAG_WRITE)) {
 		update_mmu_cache(vma, address, pte);

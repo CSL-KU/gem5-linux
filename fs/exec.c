@@ -1481,7 +1481,12 @@ static int do_execve_common(const char *filename,
 		retval = -EAGAIN;
 		goto out_ret;
 	}
-
+#ifdef CONFIG_DETMEM_PALLOC
+	if (strstr(filename, "deterministic") != NULL) {
+		current->mm->dm_page_fault = true;
+		/* current->is_dm_task = true; */
+	}
+#endif
 	/* We're below the limit (still or again), so we don't want to make
 	 * further execve() calls fail. */
 	current->flags &= ~PF_NPROC_EXCEEDED;

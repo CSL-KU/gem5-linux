@@ -1457,6 +1457,9 @@ struct task_struct {
 	unsigned int	sequential_io;
 	unsigned int	sequential_io_avg;
 #endif
+#if 0
+	bool is_dm_task;
+#endif
 };
 
 /* Future-safe accessor for struct task_struct's cpus_allowed. */

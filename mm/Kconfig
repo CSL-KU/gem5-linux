@@ -503,6 +503,11 @@ config MMAP_OUTER_CACHE
 
 	 If unsure, say N to disable outer caching.
 
+config DETMEM_PALLOC
+       bool "Enable PALLOC with Deterministic Memory support"
+       depends on CGROUP_PALLOC && MMAP_OUTER_CACHE
+       default n 
+
 config CMA
 	bool "Contiguous Memory Allocator"
 	depends on HAVE_MEMBLOCK && MMU

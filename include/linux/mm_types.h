@@ -364,6 +364,10 @@ struct mm_struct {
 	atomic_long_t nr_ptes;			/* Page table pages */
 	int map_count;				/* number of VMAs */
 
+#ifdef CONFIG_DETMEM_PALLOC
+	bool dm_page_fault;
+#endif
+
 	spinlock_t page_table_lock;		/* Protects page tables and some counters */
 	struct rw_semaphore mmap_sem;
 

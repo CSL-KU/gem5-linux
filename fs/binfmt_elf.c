@@ -746,6 +746,9 @@ static int load_elf_binary(struct linux_binprm *bprm)
 		deterministic = true;
 	else if (strstr(filename, "determ_heap") != NULL)
 		determ_heap = true;
+#if 0
+	current->is_dm_task = deterministic || determ_heap;
+#endif
 	/* Do this so that we can load the interpreter, if need be.  We will
 	   change some of these later */
 	retval = setup_arg_pages(bprm, randomize_stack_top(STACK_TOP),

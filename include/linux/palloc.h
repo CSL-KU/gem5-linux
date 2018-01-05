@@ -16,7 +16,10 @@
 
 struct palloc {
 	struct cgroup_subsys_state css;
-	COLOR_BITMAP(cmap);
+	COLOR_BITMAP(cmap); // for best-effort pages
+#ifdef CONFIG_DETMEM_PALLOC
+	COLOR_BITMAP(dm_cmap); // for DM pages. 
+#endif
 };
 
 /* Retrieve the palloc group corresponding to this cgroup container */

@@ -27,6 +27,9 @@
 */
 typedef enum {
 	FILE_PALLOC,
+#ifdef CONFIG_DETMEM_PALLOC
+	FILE_PALLOC_DM
+#endif
 } palloc_filetype_t;
 
 /*
@@ -75,6 +78,12 @@ static int palloc_file_write(struct cgroup_subsys_state *css, struct cftype *cft
 		retval = update_bitmask(ph->cmap, buf, palloc_bins());
 		printk(KERN_INFO "Bins : %s\n", buf);
 		break;
+#ifdef CONFIG_DETMEM_PALLOC
+	case FILE_PALLOC_DM:
+		retval = update_bitmask(ph->dm_cmap, buf, palloc_bins());
+		printk(KERN_INFO "DM Bins : %s\n", buf);
+		break;
+#endif
 	default:
 		retval = -EINVAL;
 		break;
@@ -105,6 +114,12 @@ static ssize_t palloc_file_read(struct cgroup_subsys_state *css,
 		s += bitmap_scnlistprintf(s, PAGE_SIZE, ph->cmap, palloc_bins());
 		printk(KERN_INFO "Bins : %s\n", s);
 		break;
+#ifdef CONFIG_DETMEM_PALLOC
+	case FILE_PALLOC_DM:
+		s += bitmap_scnlistprintf(s, PAGE_SIZE, ph->dm_cmap, palloc_bins());
+		printk(KERN_INFO "DM Bins : %s\n", s);
+		break;
+#endif
 	default:
 		retval = -EINVAL;
 		goto out;
@@ -131,6 +146,15 @@ static struct cftype files[] = {
 		.max_write_len = MAX_LINE_LEN,
 		.private = FILE_PALLOC,
 	},
+#ifdef CONFIG_DETMEM_PALLOC
+	{
+		.name = "dm_bins",
+		.read = palloc_file_read,
+		.write_string = palloc_file_write,
+		.max_write_len = MAX_LINE_LEN,
+		.private = FILE_PALLOC_DM,
+	},
+#endif
 	{ }	/* terminate */
 };
 

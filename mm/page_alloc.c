@@ -1301,13 +1301,25 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 
 	/* cgroup information */
 	ph = ph_from_subsys(current->cgroups->subsys[palloc_subsys_id]);
-	if (ph && bitmap_weight(ph->cmap, MAX_PALLOC_BINS) > 0)
-		cmap = ph->cmap;
+
+	if (ph && bitmap_weight(ph->cmap, MAX_PALLOC_BINS) > 0) {
+#ifdef CONFIG_DETMEM_PALLOC
+		if (current->mm->dm_page_fault)
+			cmap = ph->dm_cmap;
+		else
+#endif
+			cmap = ph->cmap;
+	}
 	else {
 		bitmap_fill(tmpcmap, MAX_PALLOC_BINS);
 		cmap = tmpcmap;
 	}
-
+#if 0
+	if (current->is_dm_task)
+		printk("*dm rmq * dm_page_fault:%d cmap:0x%lx\n",
+			current->mm->dm_page_fault,
+			*cmap);
+#endif
 	page = NULL;
 	if (order == 0) {
 		/* find in the cache */
@@ -1316,6 +1328,11 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 
 		if (page) {
 			update_stat(c_stat, page, iters);
+#if 0
+			if (current->is_dm_task)
+				printk("*dm rmq1* pfn:0x%05lx\n",
+					page_to_pfn(page));
+#endif
 			return page;
 		}
 	}
@@ -1344,6 +1361,11 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 					memdbg(1, "Found at Zone %s pfn 0x%lx\n",
 					       zone->name,
 					       page_to_pfn(page));
+#if 0
+					if (current->is_dm_task)
+						printk("*dm rmq2* pfn:0x%05lx\n",
+							page_to_pfn(page));
+#endif
 					return page;
 				}
 			}
