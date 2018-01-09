@@ -1304,7 +1304,7 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 
 	if (ph && bitmap_weight(ph->cmap, MAX_PALLOC_BINS) > 0) {
 #ifdef CONFIG_DETMEM_PALLOC
-		if (current->mm->dm_page_fault)
+		if (current->mm != NULL && current->mm->dm_page_fault)
 			cmap = ph->dm_cmap;
 		else
 #endif
