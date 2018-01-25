@@ -71,6 +71,329 @@ int suid_dumpable = 0;
 static LIST_HEAD(formats);
 static DEFINE_RWLOCK(binfmt_lock);
 
+#ifdef CONFIG_MMAP_OUTER_CACHE
+	// disparity
+	const unsigned long disparity_dm_pages[35] = {	0x75c1d,
+							0x75c1b,
+							0x75c1e,
+							0x75c1c,
+							0x75c1f,
+							0x75c25,
+							0x75c26,
+							0x75c24,
+							0x75c23,
+							0x75c1a,
+							0x75c18,
+							0x75c17,
+							0x75c19,
+							0x75c27,
+							0x75c22,
+							0x75c16,
+							0x75c13,
+							0x75c14,
+							0x75c15,
+							0x75c21,
+							0x75c12,
+							0x75c11,
+							0x75c10,
+							0x75c20,
+							0x75c0f,
+							0x75c0e,
+							0x75c07,
+							0x75c08,
+							0x7efff,
+							0x75c09,
+							0x75c0a,
+							0x75c0c,
+							0x75c0d,
+							0x75c0b,
+							0x75c06};
+
+	// mser
+	const unsigned long mser_dm_pages[65] = {	0x75c5a,
+							0x75c5c,
+							0x75c55,
+							0x75c56,
+							0x75c6b,
+							0x75c69,
+							0x75c68,
+							0x75c5b,
+							0x75c6c,
+							0x75c6a,
+							0x75c59,
+							0x75c58,
+							0x75c54,
+							0x75c53,
+							0x75c57,
+							0x75c67,
+							0x75c60,
+							0x75c5d,
+							0x75c5f,
+							0x75c6e,
+							0x75c52,
+							0x75c6d,
+							0x75c66,
+							0x75c51,
+							0x75c61,
+							0x75c5e,
+							0x75c50,
+							0x75c1f,
+							0x75c62,
+							0x75c4f,
+							0x75c1e,
+							0x75c17,
+							0x75c65,
+							0x75c1b,
+							0x75c1c,
+							0x75c1d,
+							0x75c1a,
+							0x75c19,
+							0x75c6f,
+							0x75c18,
+							0x75c16,
+							0x75c63,
+							0x75c64,
+							0x75c4e,
+							0x75c70,
+							0x75c15,
+							0x75c05,
+							0x75c06,
+							0x75c08,
+							0x75c07,
+							0x75c4c,
+							0x75c20,
+							0x75c10,
+							0x75c11,
+							0x75c4b,
+							0x75c12,
+							0x75c4d,
+							0x75c13,
+							0x75c4a,
+							0x75c14,
+							0x75c48,
+							0x75c44,
+							0x75c09,
+							0x75c43,
+							0x7efff};
+
+	// sift
+	const unsigned long sift_dm_pages[95] = {	0x75c03,
+							0x75c01,
+							0x75c00,
+							0x75c11,
+							0x75c15,
+							0x75c13,
+							0x75c0d,
+							0x7efff,
+							0x75c12,
+							0x75c19,
+							0x75c09,
+							0x75c17,
+							0x75c0f,
+							0x75c0e,
+							0x75c1f,
+							0x75c16,
+							0x75c1b,
+							0x75c14,
+							0x75c0a,
+							0x75c1d,
+							0x75c0b,
+							0x75c1a,
+							0x75c18,
+							0x75c10,
+							0x75c0c,
+							0x75c1e,
+							0x75c04,
+							0x75c3d,
+							0x75c21,
+							0x75c20,
+							0x75c07,
+							0x75c02,
+							0x75c1c,
+							0x75c3f,
+							0x75c23,
+							0x75c06,
+							0x75c39,
+							0x75c41,
+							0x75c08,
+							0x75c05,
+							0x75c3e,
+							0x75c3b,
+							0x75c40,
+							0x75c22,
+							0x75c3c,
+							0x75c3a,
+							0x75c53,
+							0x75c38,
+							0x75c56,
+							0x75c57,
+							0x75c52,
+							0x75c43,
+							0x75c51,
+							0x75c42,
+							0x75c55,
+							0x75c4d,
+							0x75c45,
+							0x75c4e,
+							0x75c54,
+							0x75c4f,
+							0x75c44,
+							0x75c5b,
+							0x75c46,
+							0x75c35,
+							0x75c5f,
+							0x75c33,
+							0x75c24,
+							0x75c2b,
+							0x75c47,
+							0x75c29,
+							0x75c2e,
+							0x75c5a,
+							0x75c4c,
+							0x75c2a,
+							0x75c28,
+							0x75c2c,
+							0x75c27,
+							0x75c26,
+							0x75c36,
+							0x75c32,
+							0x75c30,
+							0x75c31,
+							0x75c37,
+							0x75c58,
+							0x75c25,
+							0x75c2d,
+							0x75c34,
+							0x75c2f,
+							0x75c59,
+							0x75c50,
+							0x75c5e,
+							0x75c4a,
+							0x75c49,
+							0x75c48,
+							0x75bff};
+
+	// svm
+	const unsigned long svm_dm_pages[26] = {	0x75e25,
+							0x75e24,
+							0x75e27,
+							0x75e26,
+							0x75e28,
+							0x75e29,
+							0x00011,
+							0x00017,
+							0x00013,
+							0x00019,
+							0x75e2d,
+							0x75e2c,
+							0x75e2b,
+							0x75e2a,
+							0x0006b,
+							0x7efff,
+							0x00018,
+							0x75e2e,
+							0x0001a,
+							0x00061,
+							0x0006d,
+							0x00014,
+							0x00062,
+							0x75e2f,
+							0x75cfa,
+							0x75df3};
+
+	// texture_synth
+	const unsigned long texture_synth_dm_pages[41] = {0x75c24,
+							0x00013,
+							0x00087,
+							0x75c25,
+							0x75c08,
+							0x75c0d,
+							0x75c0b,
+							0x75c11,
+							0x75c0f,
+							0x7efff,
+							0x75c06,
+							0x75c02,
+							0x75c04,
+							0x75c0e,
+							0x75c16,
+							0x75c09,
+							0x75c05,
+							0x75c1e,
+							0x75c22,
+							0x75c0a,
+							0x75c10,
+							0x75c0c,
+							0x75c01,
+							0x75c1a,
+							0x75c07,
+							0x75c00,
+							0x75c03,
+							0x75c20,
+							0x75c12,
+							0x75c1c,
+							0x75c18,
+							0x75c14,
+							0x75c15,
+							0x75c21,
+							0x75c19,
+							0x75c1d,
+							0x75c13,
+							0x75c23,
+							0x75c1b,
+							0x75c17,
+							0x75c1f};
+
+	// aifftr01
+	const unsigned long aifftr01_dm_pages[13] = {	0x000b7,
+							0x76201,
+							0x761fe,
+							0x761ff,
+							0x76200,
+							0x000b6,
+							0x7efff,
+							0x000b0,
+							0x000b1,
+							0x000bb,
+							0x000b2,
+							0x000b5,
+							0x000b3};
+
+	// aiifft01
+	const unsigned long aiifft01_dm_pages[14] = {	0x000b7,
+							0x000b6,
+							0x7efff,
+							0x000b0,
+							0x76200,
+							0x76201,
+							0x761fe,
+							0x761ff,
+							0x000b1,
+							0x000b5,
+							0x000b2,
+							0x00011,
+							0x000b8,
+							0x000bb};
+
+	// matrix01
+	const unsigned long matrix01_dm_pages[16] = {	0x76208,
+							0x76206,
+							0x76205,
+							0x76207,
+							0x76209,
+							0x7620a,
+							0x76200,
+							0x76202,
+							0x76203,
+							0x76201,
+							0x761ff,
+							0x76204,
+							0x761fe,
+							0x7efff,
+							0x000a7,
+							0x00011};
+#endif
+
 void __register_binfmt(struct linux_binfmt * fmt, int insert)
 {
 	BUG_ON(!fmt);
@@ -1469,6 +1792,7 @@ static int do_execve_common(const char *filename,
 	struct files_struct *displaced;
 	bool clear_in_exec;
 	int retval;
+	int argc;
 
 	/*
 	 * We move the actual failure in case of RLIMIT_NPROC excess from
@@ -1481,10 +1805,77 @@ static int do_execve_common(const char *filename,
 		retval = -EAGAIN;
 		goto out_ret;
 	}
+
+	argc = count(argv, MAX_ARG_STRINGS);
+
 #ifdef CONFIG_DETMEM_PALLOC
 	if (strstr(filename, "deterministic") != NULL) {
-		current->mm->dm_page_fault = true;
+		current->dm_page_fault = true;
 		/* current->is_dm_task = true; */
+	}
+#endif
+#ifdef CONFIG_MMAP_OUTER_CACHE
+	current->dm_pages = NULL;
+
+	if (strstr(filename, "determ_top") != NULL) {
+		int ndmpgs_pos;
+		unsigned int n_dm_pages = 0;
+
+		ndmpgs_pos = argc - 2;
+		if (ndmpgs_pos > 0 &&
+		    strcmp(get_user_arg_ptr(argv, ndmpgs_pos), "--ndmpgs") == 0) {
+			const char __user *str;
+			
+			str = get_user_arg_ptr(argv, ndmpgs_pos + 1);
+			if (kstrtouint(str, 10, &n_dm_pages))
+				printk(KERN_WARNING "Could not parse the number of DM pages.\n");
+			argc -= 2;
+		}
+
+		printk("filename: %s", filename);
+
+		if (strstr(filename, "disparity_determ_top") != NULL) {
+			current->n_dm_pages = min(35u, n_dm_pages);
+			current->dm_pages = disparity_dm_pages;
+			printk(", disparity_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else if (strstr(filename, "mser_determ_top") != NULL) {
+			current->n_dm_pages = min(65u, n_dm_pages);
+			current->dm_pages = mser_dm_pages;
+			printk(", mser_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else if (strstr(filename, "sift_determ_top") != NULL) {
+			current->n_dm_pages = min(95u, n_dm_pages);
+			current->dm_pages = sift_dm_pages;
+			printk(", sift_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else if (strstr(filename, "svm_determ_top") != NULL) {
+			current->n_dm_pages = min(26u, n_dm_pages);
+			current->dm_pages = svm_dm_pages;
+			printk(", svm_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else if (strstr(filename, "texture_synthesis_determ_top") != NULL) {
+			current->n_dm_pages = min(41u, n_dm_pages);
+			current->dm_pages = texture_synth_dm_pages;
+			printk(", texture_synthesis_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else if (strstr(filename, "aifftr01_determ_top") != NULL) {
+			current->n_dm_pages = min(13u, n_dm_pages);
+			current->dm_pages = aifftr01_dm_pages;
+			printk(", aifftr01_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else if (strstr(filename, "aiifft01_determ_top") != NULL) {
+			current->n_dm_pages = min(14u, n_dm_pages);
+			current->dm_pages = aiifft01_dm_pages;
+			printk(", aiifft01_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else if (strstr(filename, "matrix01_determ_top") != NULL) {
+			current->n_dm_pages = min(16u, n_dm_pages);
+			current->dm_pages = matrix01_dm_pages;
+			printk(", matrix01_determ_top, n_dm_pages: %u\n", current->n_dm_pages);
+		}
+		else
+			printk(", is not recognized.\n");
 	}
 #endif
 	/* We're below the limit (still or again), so we don't want to make
@@ -1525,7 +1916,8 @@ static int do_execve_common(const char *filename,
 	if (retval)
 		goto out_file;
 
-	bprm->argc = count(argv, MAX_ARG_STRINGS);
+	// bprm->argc = count(argv, MAX_ARG_STRINGS);
+	bprm->argc = argc;
 	if ((retval = bprm->argc) < 0)
 		goto out;
 

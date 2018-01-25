@@ -1751,7 +1751,7 @@ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 		gup_flags |= FOLL_NUMA;
 
 	i = 0;
-
+	
 	do {
 		struct vm_area_struct *vma;
 
@@ -1919,10 +1919,8 @@ next_page:
 				page_table = get_pte(start, mm, gup_flags);
 				entry = pte_mkoutercache(*page_table);
 				set_pte_at(mm, start, page_table, entry);
-#if 0
-				printk("start = 0x%08lx; pte_val = 0x%08lx; vm_flags = 0x%08lx\n",
-					start, (u32)pte_val(*page_table), vma->vm_flags);
-#endif
+				/* printk("start = 0x%08lx; pte_val = 0x%08lx; vm_flags = 0x%08lx\n",
+					start, (u32)pte_val(*page_table), vma->vm_flags); */
 			}
 #endif
 			page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
@@ -2857,6 +2855,13 @@ gotten:
 		flush_cache_page(vma, address, pte_pfn(orig_pte));
 		entry = mk_pte(new_page, vma->vm_page_prot);
 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+#ifdef CONFIG_MMAP_OUTER_CACHE
+		if ((vma->vm_flags & VM_OUTERCACHE) || current->dm_page_fault) {
+			entry = pte_mkoutercache(entry);
+			/* printk("== OUTER (wp_page) for address = 0x%08lx; pte_val = 0x%08lx\n",
+			        address, (unsigned long)pte_val(entry)); */
+		}
+#endif
 		/*
 		 * Clear the pte entry and flush it first, before updating the
 		 * pte with the new entry. This will avoid a race condition
@@ -3305,7 +3310,7 @@ static int do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	/* printk("== ANON for vma_start = 0x%08lx; pte_val = 0x%08lx; vm_flags = 0x%08lx\n", */
 	/*        vma->vm_start, (u32)pte_val(entry), vma->vm_flags); */
 
-	if (vma->vm_flags & VM_OUTERCACHE) {
+	if ((vma->vm_flags & VM_OUTERCACHE) || current->dm_page_fault) {
 		entry = pte_mkoutercache(entry);
 	}
 #endif
@@ -3485,7 +3490,7 @@ static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 		/* If this VM was allocated as an outer cacheable page, modify
 		 * the PTE entry to reflect this setting */
 		
-		if (vma->vm_flags & VM_OUTERCACHE) {
+		if ((vma->vm_flags & VM_OUTERCACHE) || current->dm_page_fault) {
 			entry = pte_mkoutercache(entry);
 			/* printk("== OUTER (linear) for vma_start = 0x%08lx; pte_val = 0x%08lx\n", */
 			/*        vma->vm_start, (u32)pte_val(entry)); */
@@ -3698,15 +3703,32 @@ static int handle_pte_fault(struct mm_struct *mm,
 	pte_t entry;
 	spinlock_t *ptl;
 
-	entry = *pte;
+#ifdef CONFIG_MMAP_OUTER_CACHE
+	const unsigned long *dm_pages;
+	bool is_dm_page = false;
 
-#ifdef CONFIG_DETMEM_PALLOC
-	mm->dm_page_fault = vma->vm_flags & VM_OUTERCACHE ? true : false;
+	if ((dm_pages = current->dm_pages)) {
+		int i;
+		for (i = 0; i < current->n_dm_pages; i++)
+			if (address >> PAGE_SHIFT == dm_pages[i]) {
+				is_dm_page = true;
+				// printk("address: %08lx\n", address);
+				break;
+			}
+	}
+	current->dm_page_fault = is_dm_page || (vma->vm_flags & VM_OUTERCACHE);
+#endif
+
+#if 0
+	current->dm_page_fault = vma->vm_flags & VM_OUTERCACHE ? true : false;
 	/* if (current->is_dm_task)
 		printk("*dm pte * dm_page_fault:%d va:0x%08lx\n",
-		       mm->dm_page_fault,
+		       current->dm_page_fault,
 		       address); */
 #endif
+
+	entry = *pte;
+
 	if (!pte_present(entry)) {
 		if (pte_none(entry)) {
 			if (vma->vm_ops) {
@@ -3737,8 +3759,8 @@ static int handle_pte_fault(struct mm_struct *mm,
 					pte, pmd, ptl, entry);
 		entry = pte_mkdirty(entry);
 	}
-#ifdef CONFIG_DETMEM_PALLOC
-	mm->dm_page_fault = false;
+#if CONFIG_MMAP_OUTER_CACHE
+	current->dm_page_fault = false;
 #endif
 	entry = pte_mkyoung(entry);
 	if (ptep_set_access_flags(vma, address, pte, entry, flags & FAULT_FLAG_WRITE)) {

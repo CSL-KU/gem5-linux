@@ -586,6 +586,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
 	const char *filename;
 	bool deterministic = false;
 	bool determ_heap = false;
+
 	struct pt_regs *regs = current_pt_regs();
 	struct {
 		struct elfhdr elf_ex;
